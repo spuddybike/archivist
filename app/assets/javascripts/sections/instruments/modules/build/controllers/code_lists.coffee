@@ -74,8 +74,8 @@ angular.module('archivist.build').controller(
 
           DataManager.Data.ResponseDomains.Codes.$promise.then ->
             DataManager.groupResponseDomains()
-        ,->
-          Flash.add('danger', 'Code list failed to update!')
+        ,(value, rh)->
+          Flash.add('danger', 'Code list failed to update! ' + value.data.error_sentence)
         )
 
         DataManager.Data.ResponseDomains[$routeParams.id] = null

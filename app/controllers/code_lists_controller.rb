@@ -6,10 +6,10 @@ class CodeListsController < BasicInstrumentController
   @model_class = CodeList
 
   # List of params that can be set and edited
-  @params_list = [:label, :min_responses, :max_responses, codes_attributes: [ :id, :value, category_attributes: [:id, :label] ]]
+  @params_list = [:label, :min_responses, :max_responses, codes_attributes: [ :id, :value, :order, :category_id, :_destroy, category_attributes: [:id, :label, :instrument_id] ]]
 
   rescue_from ActiveRecord::RecordInvalid do |e|
-    render json: e.record.errors.full_messages, status: :unprocessable_entity
+    render json: e.record.errors.full_messages.to_sentence, status: :unprocessable_entity
   end
 
   # POST /instruments/1/code_lists.json
@@ -27,7 +27,7 @@ class CodeListsController < BasicInstrumentController
       end
       render :show, status: :created
     else
-      render json: @object.errors, status: :unprocessable_entity
+      render json: { errors: @object.errors, error_sentence: @object.errors.full_messages.to_sentence }, status: :unprocessable_entity
     end
   end
 
@@ -51,7 +51,7 @@ class CodeListsController < BasicInstrumentController
       end
     else
       respond_to do |format|
-        format.json { render json: @object.errors, status: :unprocessable_entity }
+        format.json { render json: { errors: @object.errors, error_sentence: @object.errors.full_messages.to_sentence }, status: :unprocessable_entity }
       end
     end
   end
@@ -63,14 +63,31 @@ class CodeListsController < BasicInstrumentController
     # tranform these into params that comply with the params expected
     # by nested attributes using accepts_nested_attributes for the codes
     # and their nested categories.
-    codes_params = params[:code_list].delete(:codes)
+
+    # Codes might be a wrapped parameter or not, for example it is not in the
+    # controller test
+    codes_params = params.delete(:codes) || params[:code_list].try(:delete, :codes)
     if codes_params
-      codes_params.map do | code |
-        code[:category_attributes] = {
-          id: code.delete(:category_id),
-          label: code.delete(:label)
-        }
+      codes_params = codes_params.map do | code |
+        category_label = code.delete(:label)
+        category = @instrument.categories.where(label: category_label).first
+        if category
+          # Assign to existing category
+          code[:category_id] = category.id
+        else
+          code.delete(:category_id)
+          # Create new category
+          code[:category_attributes] = {
+            label: category_label,
+            instrument_id: @instrument.id
+          }
+        end
         code
+      end
+      if @object
+        existing_codes = @object.codes.map(&:id)
+        codes_to_delete = existing_codes - codes_params.map{|cp|cp[:id]}
+        codes_params.concat(codes_to_delete.map{|id| { id: id, _destroy: true}})
       end
       params[:code_list][:codes_attributes] = codes_params
     end

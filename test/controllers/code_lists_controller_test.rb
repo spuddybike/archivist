@@ -22,6 +22,19 @@ class CodeListsControllerTest < ActionController::TestCase
     assert_response :success
   end
 
+  test "should give errors if trying to create code_list with invalid params" do
+    post :create, format: :json, params: {
+      instrument_id: @instrument.id,
+      code_list: {
+        label: @code_list.label,
+        codes: [
+          { value: 1, label: '', order: 1}
+        ]
+      }
+    }
+    assert_response :unprocessable_entity
+  end
+
   test "should show code_list" do
     get :show, format: :json, params: { instrument_id: @instrument.id, id: @code_list }
     assert_response :success
@@ -33,7 +46,16 @@ class CodeListsControllerTest < ActionController::TestCase
   end
 
   test "should give errors if trying to update code_list with invalid params" do
-    patch :update, format: :json, params: { instrument_id: @instrument.id, id: @code_list, code_list: {label: @code_list.label, codes: [{ id: @code_list.codes.first.id, category_id: 5263, value: "1", label: '', order: 1}] }}
+    patch :update, format: :json, params: {
+      instrument_id: @instrument.id,
+      id: @code_list,
+      code_list: {
+        label: @code_list.label,
+        codes: [
+          { value: 1, label: '', order: 1}
+        ]
+      }
+    }
     assert_response :unprocessable_entity
   end
 
