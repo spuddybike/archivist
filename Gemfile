@@ -49,6 +49,13 @@ gem 'puma', '3.12.6'
 gem 'pundit', '1.1.0'
 # Limits processing time in rack layer for added loading protection
 gem 'rack-timeout', '0.4.2'
+
+gem 'rack-cache'
+
+gem 'redis-rack-cache', '2.0.2'
+
+gem 'rack-cors'
+
 gem 'rails', '5.2.4.4'
 # Use Redis for caching
 gem 'redis', '3.3.5'
@@ -58,6 +65,8 @@ gem 'sass-rails', '5.0.7'
 gem 'sdoc', '1.0.0', group: :doc
 # Use Uglifier as compressor for JavaScript assets
 gem 'uglifier', '4.1.18'
+
+gem 'jwt'
 
 # Production gems
 group :production do
@@ -88,6 +97,7 @@ group :development do
   gem 'spring', '2.0.2'
   # Access an IRB console on exception pages or by using <%= console %> in views
   gem 'web-console', '~> 3.7'
+  gem 'foreman'
 end
 
 group :test do
