@@ -152,7 +152,7 @@ class InstrumentsController < ImportableController
 
   private
   def set_object
-    @object = collection.friendly.find(params[:id])
+    @object = Instrument.friendly.find(params[:id])
   end
 
   def reorder_params
